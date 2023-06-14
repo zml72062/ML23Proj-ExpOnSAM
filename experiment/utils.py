@@ -2,7 +2,6 @@ import nibabel as nib
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.ndimage as ndimage
-from typing import Tuple
 import sys
 sys.path.append('..')
 from segment_anything import sam_model_registry, SamPredictor
@@ -25,7 +24,8 @@ def select_label(full_label: np.ndarray, fg_label: int) -> np.ndarray:
 def find_center(selected_label: np.ndarray) -> np.ndarray:
     """
     Find the coordinate of center point of the object in slice `selected_label`,
-    in the form (X, Y). Raise `ValueError` if there is no object in the slice.
+    in the form (X, Y) with shape (2,). Raise `ValueError` if there is no object 
+    in the slice.
     """
     w = selected_label.shape[1]
     dist = ndimage.distance_transform_edt(selected_label)
@@ -36,9 +36,9 @@ def find_center(selected_label: np.ndarray) -> np.ndarray:
 
 def find_bounding_box(selected_label: np.ndarray, margin: int = 0) -> np.ndarray:
     """
-    Find the bounding box of the object in slice `selected_label`, in XYXY format.
-    If `margin > 0`, the box will be larger than the bounding box by `margin` at
-    four sides. Raise `ValueError` if there is no object in the slice.
+    Find the bounding box of the object in slice `selected_label`, in XYXY format,
+    with shape (4,). If `margin > 0`, the box will be larger than the bounding box 
+    by `margin` at four sides. Raise `ValueError` if there is no object in the slice.
     """
     rows, columns = np.where(selected_label)
     try:
@@ -51,6 +51,34 @@ def find_bounding_box(selected_label: np.ndarray, margin: int = 0) -> np.ndarray
         return np.array([x_min, y_min, x_max, y_max], dtype=np.int8)
     except:
         raise ValueError("The image slice is empty!")
+
+def find_fg_random(selected_label: np.ndarray, num_points: int = 1) -> np.ndarray:
+    """
+    Generate `num_points` random points in the foreground of slice `selected_label`,
+    in shape (num_points, 2). Raise `ValueError` if there is no foreground.
+
+    NOTE: This method doesn't ensure the point coordinates are different.
+    """
+    rows, columns = np.where(selected_label)
+    try:
+        indices = np.random.randint(rows.shape[0], size=(num_points,))
+        return np.stack([columns[indices], rows[indices]], axis=0).transpose()
+    except:
+        raise ValueError("The image slice is empty!")   
+
+def find_bg_random(selected_label: np.ndarray, num_points: int = 1) -> np.ndarray:
+    """
+    Generate `num_points` random points in the foreground of slice `selected_label`,
+    in shape (num_points, 2). Raise `ValueError` if there is no foreground.
+
+    NOTE: This method doesn't ensure the point coordinates are different.
+    """
+    rows, columns = np.where(1 - selected_label)
+    try:
+        indices = np.random.randint(rows.shape[0], size=(num_points,))
+        return np.stack([columns[indices], rows[indices]], axis=0).transpose()
+    except:
+        raise ValueError("The image slice is empty!")    
 
 def load_data(image_path: str) -> np.ndarray:
     """
