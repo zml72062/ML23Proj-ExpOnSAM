@@ -1,0 +1,3 @@
+After downloading the dataset, extract training images to "Training/img",
+training labels to "Training/label", and testing images to "Testing/img",
+all under this (RawData) directory.
