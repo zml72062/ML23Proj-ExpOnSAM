@@ -138,3 +138,9 @@ def get_sam_predictor(model_type: str = 'vit_h',
     sam.to(device=device)
 
     return SamPredictor(sam)
+
+def dice_score(pred: np.ndarray, truth: np.ndarray) -> float:
+    pred_, truth_ = pred.astype(bool), truth.astype(bool)
+    enumerator = (pred_ & truth_).sum() * 2
+    denominator = pred_.sum() + truth_.sum()
+    return enumerator / denominator
