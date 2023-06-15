@@ -18,6 +18,7 @@ label_filenames = os.listdir(label_fold_path)
 
 
 def experiment(mode: str, fg_label: int, slice_step: int):
+    dice_results = []
     for label_filename in label_filenames:
         # get image data
 
@@ -123,7 +124,6 @@ with open('../dataset/dataset_0.json', 'r') as f:
 # slice_step
 slice_step = 1
 
-dice_results = []
 for fg_label in range(1,14):
     print(f"looking for {fg_label}.{data_info['labels'][str(fg_label)]}...")
     experiment(mode=mode, fg_label=fg_label, slice_step=slice_step)
