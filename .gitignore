@@ -44,3 +44,4 @@ package-lock.json
 # data
 RawData.zip
 experiment/RawData
+experiment/results
