@@ -1,0 +1,43 @@
+[{
+        "image": "img0039.nii.gz",
+        "slice_0": null,
+        "slice_80": [
+            0.5138165345413364
+        ]
+    },
+    {
+        "image": "img0035.nii.gz",
+        "slice_0": null,
+        "slice_80": [
+            0.11770116055328984
+        ]
+    },
+    {
+        "image": "img0040.nii.gz",
+        "slice_0": null,
+        "slice_80": null,
+        "slice_160": null
+    },
+    {
+        "image": "img0038.nii.gz",
+        "slice_0": null,
+        "slice_80": [
+            0.08004182459809175
+        ]
+    },
+    {
+        "image": "img0037.nii.gz",
+        "slice_0": null,
+        "slice_80": [
+            0.18110392082223067
+        ]
+    },
+    {
+        "image": "img0036.nii.gz",
+        "slice_0": null,
+        "slice_80": null,
+        "slice_160": [
+            0.01661795735423247
+        ]
+    }
+]
