@@ -32,7 +32,7 @@ def find_center(selected_label: np.ndarray) -> np.ndarray:
     max_, argmax_ = dist.max(), dist.argmax()
     if int(max_) == 0:
         raise ValueError("The image slice is empty!")
-    return np.array([argmax_ % w, argmax_ // w], dtype=np.int8)
+    return np.array([argmax_ % w, argmax_ // w], dtype=np.int32)
 
 def find_bounding_box(selected_label: np.ndarray, margin: int = 0) -> np.ndarray:
     """
@@ -48,7 +48,7 @@ def find_bounding_box(selected_label: np.ndarray, margin: int = 0) -> np.ndarray
         y_min = max(0, y_min - margin)
         x_max = min(selected_label.shape[1], x_max + margin)
         y_max = min(selected_label.shape[0], y_max + margin)
-        return np.array([x_min, y_min, x_max, y_max], dtype=np.int8)
+        return np.array([x_min, y_min, x_max, y_max], dtype=np.int32)
     except:
         raise ValueError("The image slice is empty!")
 
