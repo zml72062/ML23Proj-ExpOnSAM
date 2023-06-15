@@ -35,6 +35,7 @@ def load_dataset(split: str = 'training',
 def prepare_input(sam: Sam,
                   data: np.ndarray, 
                   labels: np.ndarray,
+                  z_batch_range: slice,
                   point_prompt: List[str],
                   bounding_box_prompt: bool,
                   bounding_box_margin: int,
@@ -53,8 +54,7 @@ def prepare_input(sam: Sam,
     # The batched input which will be fed into SAM model
     batched_input: List[dict] = []
 
-    z_slices = labels.shape[-1]
-    for i in range(z_slices):
+    for i in z_batch_range:
         # Prepare image
         image_i = torch.from_numpy(
             transform.apply_image(data[..., i])
