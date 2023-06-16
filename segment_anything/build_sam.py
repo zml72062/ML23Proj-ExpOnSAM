@@ -8,7 +8,7 @@ import torch
 
 from functools import partial
 
-from .modeling import ImageEncoderViT, MaskDecoder, PromptEncoder, Sam, TwoWayTransformer
+from .modeling import ImageEncoderViT, MaskDecoder, PromptEncoder, Sam, SamTrain, TwoWayTransformer
 
 
 def build_sam_vit_h(checkpoint=None):
@@ -18,6 +18,16 @@ def build_sam_vit_h(checkpoint=None):
         encoder_num_heads=16,
         encoder_global_attn_indexes=[7, 15, 23, 31],
         checkpoint=checkpoint,
+    )
+
+def build_sam_vit_h_train(checkpoint=None):
+    return _build_sam(
+        encoder_embed_dim=1280,
+        encoder_depth=32,
+        encoder_num_heads=16,
+        encoder_global_attn_indexes=[7, 15, 23, 31],
+        checkpoint=checkpoint,
+        train=True,
     )
 
 
@@ -43,12 +53,36 @@ def build_sam_vit_b(checkpoint=None):
         checkpoint=checkpoint,
     )
 
+def build_sam_vit_l_train(checkpoint=None):
+    return _build_sam(
+        encoder_embed_dim=1024,
+        encoder_depth=24,
+        encoder_num_heads=16,
+        encoder_global_attn_indexes=[5, 11, 17, 23],
+        checkpoint=checkpoint,
+        train=True
+    )
+
+
+def build_sam_vit_b_train(checkpoint=None):
+    return _build_sam(
+        encoder_embed_dim=768,
+        encoder_depth=12,
+        encoder_num_heads=12,
+        encoder_global_attn_indexes=[2, 5, 8, 11],
+        checkpoint=checkpoint,
+        train=True,
+    )
+
 
 sam_model_registry = {
     "default": build_sam_vit_h,
     "vit_h": build_sam_vit_h,
     "vit_l": build_sam_vit_l,
     "vit_b": build_sam_vit_b,
+    "vit_h_train": build_sam_vit_h_train,
+    "vit_l_train": build_sam_vit_l_train,
+    "vit_b_train": build_sam_vit_b_train,
 }
 
 
@@ -58,12 +92,14 @@ def _build_sam(
     encoder_num_heads,
     encoder_global_attn_indexes,
     checkpoint=None,
+    train=False,
 ):
     prompt_embed_dim = 256
     image_size = 1024
     vit_patch_size = 16
     image_embedding_size = image_size // vit_patch_size
-    sam = Sam(
+    sam_class = SamTrain if train else Sam
+    sam = sam_class(
         image_encoder=ImageEncoderViT(
             depth=encoder_depth,
             embed_dim=encoder_embed_dim,
@@ -99,7 +135,10 @@ def _build_sam(
         pixel_mean=[123.675, 116.28, 103.53],
         pixel_std=[58.395, 57.12, 57.375],
     )
-    sam.eval()
+    if train:
+        sam.train()
+    else:
+        sam.eval()
     if checkpoint is not None:
         with open(checkpoint, "rb") as f:
             state_dict = torch.load(f)
