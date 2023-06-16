@@ -95,3 +95,63 @@ def prepare_input(sam: Sam,
 
         batched_input.append(input_dict)
     return target_list, batched_input
+
+def prepare_grid_input(sam: Sam,
+                       data: np.ndarray, 
+                       labels: np.ndarray,
+                       z_batch_range: slice,
+                       grid_distance: int,
+                       targets: Optional[Union[int, List[int]]] = None)\
+         -> Tuple[List[Tuple[int, List[int]]], List[dict]]:
+    """
+    A counterpart to `prepare_input`, in the case of grid prompt.
+    NOTE: The batched input will be load to the same GPU as the SAM model.
+    """
+    transform = ResizeLongestSide(sam.image_encoder.img_size)
+    if targets is None: # No target specified, segment all organs
+        targets = list(range(1, 14))
+    elif isinstance(targets, int):
+        targets = [targets]
+
+    grid_points = utils.generate_grid_points(labels[..., 0], grid_distance)
+    # A list that records (z_coor, targets present in that slice)
+    target_list: List[Tuple[int, List[int]]] = []
+    # The batched input which will be fed into SAM model
+    batched_input: List[dict] = []
+
+    for i in z_batch_range:
+        # Prepare image
+        image_i = torch.from_numpy(
+            transform.apply_image(data[..., i])
+        ).to(sam.device).permute(2, 0, 1).contiguous()
+
+        gen_targets = []
+        gen_labels = []
+        for t in targets:
+            target_label = utils.select_label(labels[..., i], t)
+            if target_label.sum() == 0:
+                continue
+            gen_targets.append(t)
+
+            label = np.array([target_label[tuple(idx)] for idx in grid_points],
+                             dtype=np.int8)
+            gen_labels.append(label)
+        if len(gen_targets) == 0:
+            continue
+
+        target_list.append((i, gen_targets))
+
+        batched_data = np.repeat(grid_points[None, :], len(gen_targets), axis=0)
+        batched_labels = np.stack(gen_labels, axis=0)
+
+        input_dict = {
+            'image': image_i,
+            'original_size': data.shape[:2],
+            'point_coords': transform.apply_coords_torch(
+                torch.from_numpy(batched_data).to(sam.device), data.shape[:2]
+            ),
+            'point_labels': torch.from_numpy(batched_labels).to(sam.device)
+        }
+        batched_input.append(input_dict)
+
+    return target_list, batched_input

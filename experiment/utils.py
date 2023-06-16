@@ -79,6 +79,21 @@ def find_bg_random(selected_label: np.ndarray, num_points: int = 1) -> np.ndarra
         return np.stack([columns[indices], rows[indices]], axis=0).transpose()
     except:
         raise ValueError("The image slice is empty!")    
+    
+
+def generate_grid_points(label: np.ndarray, grid_distance: int) -> np.ndarray:
+    """
+    Generate grid points from `label`.
+    """
+    h, w = label.shape[0], label.shape[1]
+    if grid_distance == 1:
+        horizontal = np.arange(1, w - 1)
+        vertical = np.arange(1, h - 1)
+    else:
+        horizontal = np.arange(grid_distance // 2, w - grid_distance // 2, grid_distance)
+        vertical = np.arange(grid_distance // 2, h - grid_distance // 2, grid_distance)
+    return np.transpose(np.stack(np.meshgrid(vertical, horizontal)), [1, 2, 0]).reshape(-1, 2)
+
 
 def load_data(image_path: str) -> np.ndarray:
     """
@@ -152,3 +167,4 @@ def dice_score(pred: np.ndarray, truth: np.ndarray) -> float:
     enumerator = (pred_ & truth_).sum() * 2
     denominator = pred_.sum() + truth_.sum()
     return enumerator / denominator
+
